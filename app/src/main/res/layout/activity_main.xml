@@ -23,14 +23,15 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:background="#d6d6d6"
+        android:id="@+id/scroll_status"
         >
       <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
-        android:id="@+id/info_window"
-        />
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textAppearance="?android:attr/textAppearanceSmall"
+          android:text="Small Text"
+          android:id="@+id/info_window"
+          />
     </ScrollView>
 
 
@@ -50,6 +51,29 @@
         android:text="Receive voice"
         android:id="@+id/switch_recv_voice"
         />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+      <Button
+          android:id="@+id/btn_start_vm_service"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="Start Service"
+          android:padding="8dp"
+          />
+      <Button
+          android:id="@+id/btn_stop_vm_service"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="Stop Service"
+          android:padding="8dp"
+          />
+    </LinearLayout>
+
   </LinearLayout>
 
 </ScrollView>

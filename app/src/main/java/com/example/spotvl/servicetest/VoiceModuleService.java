@@ -1,66 +1,87 @@
 package com.example.spotvl.servicetest;
 
+import android.app.Activity;
+import android.app.IntentService;
 import android.app.Notification;
-import android.app.PendingIntent;
-import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
-public class VoiceModuleService extends Service {
+public class VoiceModuleService extends IntentService {
+  public static final String ACTION = "com.example.spotvl.servicetest.VoiceModuleService";
 
   Singleton s;
 
-  private final IBinder binder = new MyBinder();
+  // Must create a default constructor
+  public VoiceModuleService() {
+    // Used to name the worker thread, important only for debugging.
+    super("voice module test-service");
+  }
 
-  public class MyBinder extends Binder {
-    VoiceModuleService getService() {
-      return VoiceModuleService.this;
+  @Override
+  public void onCreate() {
+    super.onCreate(); // if you override onCreate(), make sure to call super().
+    // If a Context object is needed, call getApplicationContext() here.
+    Log.d(Singleton.TAG,"IntentService onCreate().");
+
+    s = Singleton.getInstance(getApplicationContext());
+
+    IntentFilter filter = new IntentFilter(MainActivity.ACTION);
+    LocalBroadcastManager.getInstance(this).registerReceiver(receiver,filter);
+  }
+
+
+  @Override protected void onHandleIntent(Intent intent){
+    // This describes what will happen when service is triggered
+    Log.d(Singleton.TAG,"IntentService onHandleIntent().");
+
+
+    startForeground(1231234, new Notification());
+
+    while (true)
+    {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 
-  public static final String TAG = "VOICE_MODULE_SERVICE";
+  private BroadcastReceiver receiver = new BroadcastReceiver() {
+    @Override public void onReceive(Context context, Intent intent) {
 
-  @Override public void onCreate() {
-    super.onCreate();
+      Log.d(Singleton.TAG,"IntentService receiver onReceive().");
 
-    s = Singleton.getInstance(getApplicationContext());
-  }
+      boolean swSend,swRecv;
+      swSend=swRecv=false;
 
+      if(intent.hasExtra("swSend"))
+      {
+        swSend = intent.getBooleanExtra("swSend", false);
+      }
+      if(intent.hasExtra("swRecv"))
+      {
+        swRecv = intent.getBooleanExtra("swRecv", false);
+      }
 
-  @Nullable @Override public IBinder onBind(Intent intent) {
-    return binder;
-  }
+      Intent in = new Intent(ACTION);
+      in.putExtra("resultValue", "Send back switchers state: " + swSend + " " + swRecv);
+      LocalBroadcastManager.getInstance(VoiceModuleService.this).sendBroadcast(in);
 
+    }
+  };
 
+  @Override public void onDestroy() {
+    super.onDestroy();
 
-  @Override public int onStartCommand(Intent intent, int flags, int startId) {
-    startBackgroundTask(intent, startId);
-    return Service.START_REDELIVER_INTENT;
-  }
+    Log.d(Singleton.TAG, "IntentService onDestroy().");
 
-  private void startBackgroundTask(Intent intent, int startId) {
-    int NOTIFICATION_ID = 1;
-
-    Intent intentMainActivity = new Intent(this,MainActivity.class);
-    PendingIntent pi = PendingIntent.getActivity(this,1,intentMainActivity,0);
-
-
-    Notification.Builder builder = new Notification.Builder(this);
-
-    builder.setAutoCancel(false);
-    builder.setTicker("this is ticker text");
-    builder.setContentTitle("Voice Module Notification");
-    builder.setContentText("You have a new message");
-    builder.setSmallIcon(R.drawable.ic_network_wifi_24dp);
-    builder.setContentIntent(pi);
-    builder.setOngoing(true);
-    builder.setSubText("This is subtext...");   //API level 16
-    builder.setNumber(100);
-    builder.build();
-    Notification notification = builder.build();
-
-    startForeground(NOTIFICATION_ID, notification);
+    // Unregister the listener when the application is paused
+    LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+    // or `unregisterReceiver(testReceiver)` for a normal broadcast
   }
 }
