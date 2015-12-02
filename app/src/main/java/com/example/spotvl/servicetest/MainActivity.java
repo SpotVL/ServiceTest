@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.example.spotvl.servicetest.Utils.Constants;
 import com.example.spotvl.servicetest.Utils.NetworkUtil;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
   private void updateUI()
   {
     try {
-      addText((s.NetworkIntface == null) ? "": NetworkUtil.getInet4NetworkAddress(s.NetworkIntface));
+      addText((s.getNetworkInterface() == null) ? "": NetworkUtil.getInet4NetworkAddress(s.getNetworkInterface()));
     } catch (SocketException e) {
       e.printStackTrace();
     }
@@ -74,14 +75,14 @@ public class MainActivity extends AppCompatActivity {
     swSend.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         s.isSendingVoice = swSend.isChecked();
-        sendToService();
+        sendToService(true);
       }
     });
 
     swRecv.setOnClickListener(new View.OnClickListener() {
       @Override public void onClick(View v) {
         s.isReceivingVoice = swRecv.isChecked();
-        sendToService();
+        sendToService(false);
       }
     });
 
@@ -100,13 +101,38 @@ public class MainActivity extends AppCompatActivity {
     updateUI();
   }
 
-  private void sendToService(){
+  private void sendToService(boolean isSwSendClicked){
     Intent in = new Intent(ACTION);
-    in.putExtra("swSend", swSend.isChecked());
-    in.putExtra("swRecv", swRecv.isChecked());
+    if(isSwSendClicked)
+    {
+      in.putExtra("swSend", swSend.isChecked());
+    } else {
+      in.putExtra("swRecv", swRecv.isChecked());
+    }
     LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(in);
   }
 
+
+  //VoiceModule_Voice_Send
+  private BroadcastReceiver voiceModuleMuteMic = new BroadcastReceiver() {
+    @Override public void onReceive(Context context, Intent intent) {
+
+      sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+
+      if (intent.hasExtra("VoiceSendChange")) {
+        s.isSendingVoice = !s.isSendingVoice;
+        addText("Switch Voice send to : " + s.isSendingVoice);
+        swSend.setChecked(s.isSendingVoice);
+      }
+
+      if (intent.hasExtra("ReceiveVoiceChange")) {
+        s.isReceivingVoice = !s.isReceivingVoice;
+        addText("Switch Receive voice to : " + s.isReceivingVoice);
+        swRecv.setChecked(s.isReceivingVoice);
+      }
+
+    }
+  };
 
   //receive from Service
   private BroadcastReceiver voiceModuleReceiver = new BroadcastReceiver() {
@@ -157,6 +183,11 @@ public class MainActivity extends AppCompatActivity {
 
     LocalBroadcastManager.getInstance(this).registerReceiver(voiceModuleReceiver, filter);
     // or `registerReceiver(testReceiver, filter)` for a normal broadcast
+
+
+    IntentFilter filterMic = new IntentFilter("VoiceModule_Voice_Send");
+    registerReceiver(voiceModuleMuteMic, filterMic);
+
   }
 
   @Override protected void onPause() {
@@ -167,6 +198,8 @@ public class MainActivity extends AppCompatActivity {
     // Unregister the listener when the application is paused
     LocalBroadcastManager.getInstance(this).unregisterReceiver(voiceModuleReceiver);
     // or `unregisterReceiver(testReceiver)` for a normal broadcast
+
+    unregisterReceiver(voiceModuleMuteMic);
   }
 
 
@@ -190,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
   @Override public void onSaveInstanceState(Bundle outState) {
 
-    Log.d(Singleton.TAG, "MainActivity onSaveInstanceState()");
+    Log.d(Constants.TAG, "MainActivity onSaveInstanceState()");
 
     String txtToSave = statusWindow.getText().toString();
     outState.putString("statusWindow", txtToSave);
@@ -199,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override protected void onRestoreInstanceState(Bundle savedInstanceState) {
-    Log.d(Singleton.TAG, "MainActivity onRestoreInstanceState()");
+    Log.d(Constants.TAG, "MainActivity onRestoreInstanceState()");
     super.onRestoreInstanceState(savedInstanceState);
 
     statusWindow.setText(savedInstanceState.getString("statusWindow","oops"));

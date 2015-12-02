@@ -311,7 +311,7 @@ public class NetworkUtil {
       sb.append(wlan0.getName() + " ");
       if (wlan0.getName().equals("wlan0")) {
         //there is probably a better way to find ethernet interface
-        Log.i(Singleton.TAG, "wlan0 found");
+        Log.i(Constants.TAG, "wlan0 found");
         return wlan0;
       }
     }

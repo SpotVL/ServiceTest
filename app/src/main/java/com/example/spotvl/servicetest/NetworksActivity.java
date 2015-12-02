@@ -44,8 +44,7 @@ public class NetworksActivity extends AppCompatActivity {
 
         Context c = getApplicationContext();
 
-        String msg = activeNetworksAdapter.getItem(position).toString();
-        Singleton.getInstance(c).NetworkIntface = activeNetworksAdapter.getItem(position);
+        Singleton.getInstance(c).setNetworkInterface(activeNetworksAdapter.getItem(position));
         activeNetworksAdapter.notifyDataSetChanged();
 
         finish();

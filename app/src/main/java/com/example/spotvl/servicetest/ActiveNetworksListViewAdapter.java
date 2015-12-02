@@ -60,7 +60,7 @@ public class ActiveNetworksListViewAdapter extends BaseAdapter {
   @Override public View getView(int position, View convertView, ViewGroup parent) {
     View view = convertView;
 
-    NetworkInterface act = Singleton.getInstance(context).NetworkIntface;
+    NetworkInterface act = Singleton.getInstance(context).getNetworkInterface();
     NetworkInterface ni = getItem(position);
 
     if(view == null)
